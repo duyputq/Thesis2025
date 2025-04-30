@@ -9,7 +9,7 @@ def myNetwork():
     net = Mininet()
 
     #ip cua may ca nhan cung la ip cua controller, port 6653 la port danh cho openflow
-    c0 = net.addController('c0', controller=RemoteController, ip='192.168.3.200', port=6653) 
+    c0 = net.addController('c0', controller=RemoteController, ip='192.168.3.203', port=6653) 
     s1 = net.addSwitch('s1', cls=OVSSwitch, protocols='OpenFlow13')
     s2 = net.addSwitch('s2', cls=OVSSwitch, protocols='OpenFlow13')
     s3 = net.addSwitch('s3', cls=OVSSwitch, protocols='OpenFlow13')
