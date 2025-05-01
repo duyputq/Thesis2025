@@ -56,39 +56,46 @@ x_new = np.array([sdfb, sdfp, rpf])
 z = np.dot(w, x_new) + b
 label = 1 if z >= 0 else 0
 
-if (label == 1):
-    # Giả sử bạn chỉ lấy 1 dòng cuối trong CSV (MAC pair cuối)
-    dl_src, dl_dst = mac_pairs[-1]
+import subprocess
+import re
 
+if label == 1:
     print("Detected DDOS Traffic", end=" - ")
-    # # os.system("echo show us your way")
-    # # os.system("ovs-ofctl -O OpenFlow13 add-flow s1 'table=0, priority=10, in_port=s1-eth1, dl_src=22:ac:3e:77:9b:88, dl_dst=96:39:95:49:17:d0, actions=drop'")
-    # # s1
-    commands = [
-    'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=1, dl_src=A6:B9:DD:9E:05:2C, dl_dst=02:39:04:A9:52:82, actions=drop"',
-    'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=4, dl_src=02:39:04:A9:52:82, dl_dst=A6:B9:DD:9E:05:2C, actions=drop"',
-    'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=3, dl_src=02:39:04:A9:52:82, dl_dst=A6:B9:DD:9E:05:2C, actions=drop"',
-    'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=5, dl_src=A6:B9:DD:9E:05:2C, dl_dst=02:39:04:A9:52:82, actions=drop"',
-    ]
+    try:
+        # Run command to get flow entries with in_port=1 on switch s1
+        cmd = "sudo ovs-ofctl -O OpenFlow13 dump-flows s1 | grep in_port=1"
+        output = subprocess.check_output(cmd, shell=True).decode('utf-8').strip()
 
-    processes = [subprocess.Popen(cmd, shell=True) for cmd in commands]
+        # Extract dl_src and dl_dst using regex
+        dl_src_match = re.search(r'dl_src=([0-9a-fA-F:]+)', output)
+        dl_dst_match = re.search(r'dl_dst=([0-9a-fA-F:]+)', output)
 
-    command2s = [
-    'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=1, dl_src=A6:B9:DD:9E:05:2C, dl_dst=02:39:04:A9:52:82, actions=drop"',
-    'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=4, dl_src=02:39:04:A9:52:82, dl_dst=A6:B9:DD:9E:05:2C, actions=drop"',
-    'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=3, dl_src=02:39:04:A9:52:82, dl_dst=A6:B9:DD:9E:05:2C, actions=drop"',
-    'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=5, dl_src=A6:B9:DD:9E:05:2C, dl_dst=02:39:04:A9:52:82, actions=drop"',
-    ]
+        if dl_src_match and dl_dst_match:
+            dl_src = dl_src_match.group(1)
+            dl_dst = dl_dst_match.group(1)
 
-    processes2 = [subprocess.Popen(cmd, shell=True) for cmd in command2s]
+            # Construct OpenFlow drop rules with extracted MAC addresses
+            commands = [
+                f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=1, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=4, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=3, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=5, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
+            ]
 
-    print("Mitigated DDOS Traffic Successfully!")
-    
-    # for p in processes:
-    #     p.wait()
+            # Execute the commands
+            processes = [subprocess.Popen(cmd, shell=True) for cmd in commands]
+           
 
+            print("Mitigated DDOS Traffic Successfully!")
+        else:
+            print("Failed to extract dl_src or dl_dst.")
+
+    except subprocess.CalledProcessError as e:
+        print("Error while executing ovs-ofctl command:", e)
 else:
     print("Normal Traffic")
+
+
 # ==== Ghi đặc trưng và nhãn ====
 headers = ["SDFB", "SDFP", "SFE", "RPF", "LABEL"]
 features = [sdfb, sdfp, sfe, rpf, label]
