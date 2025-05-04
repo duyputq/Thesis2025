@@ -12,6 +12,25 @@ sudo ovs-ofctl -O OpenFlow13 dump-flows br0
 
 sudo ovs-ofctl -O OpenFlow13 dump-flows s1
 
+docker compose stop
+
+ONOS CLI commands
+
+    Devices command
+    Links command
+    Hosts command
+    Flows command
+    Paths command
+    Intent Command
+
+            commands = [
+                f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=1, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=4, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=3, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=5, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
+            ]
+
+
 cookie=0x890000da70cb83, duration=31.516s, table=0, n_packets=31, n_bytes=3038, send_flow_rem priority=10,in_port="s1-eth4",dl_src=6e:19:2a:0a:47:32,dl_dst=96:aa:47:03:a7:41 actions=output:"s1-eth1"
 
 cookie=0x0, duration=10.903s, table=classifier, n_packets=1, n_bytes=0, idle_timeout=10, hard_timeout=30, priority=65535,icmp,in_port="6",dl_vlan=58,dl_vlan_pcp=0,dl_src=38:60:77:89:e6:72,dl_dst=38:60:77:89:f1:49,nw_src=10.58.0.6,nw_dst=10.58.0.5,nw_tos=0,icmp_type=8,icmp_code=0 actions=output:"5"

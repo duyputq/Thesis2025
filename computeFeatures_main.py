@@ -74,7 +74,6 @@ if label == 1:
             dl_src = dl_src_match.group(1)
             dl_dst = dl_dst_match.group(1)
 
-            # Construct OpenFlow drop rules with extracted MAC addresses
             commands = [
                 f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=1, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
                 f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=4, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
@@ -82,10 +81,8 @@ if label == 1:
                 f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=5, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
             ]
 
-            # Execute the commands
             processes = [subprocess.Popen(cmd, shell=True) for cmd in commands]
            
-
             print("Mitigated DDOS Traffic Successfully!")
         else:
             print("Failed to extract dl_src or dl_dst.")

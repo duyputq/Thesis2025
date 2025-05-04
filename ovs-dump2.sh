@@ -64,5 +64,5 @@ while true; do
     
     python3 computeFeatures_main.py
 
-    sleep 0.05
+    sleep 0.005
 done
