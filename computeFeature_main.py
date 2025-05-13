@@ -61,34 +61,42 @@ import re
 
 if label == 1:
     print("Detected DDOS Traffic", end=" - ")
+    
     try:
-        # Run command to get flow entries with in_port=1 on switch s1
-        cmd = "sudo ovs-ofctl -O OpenFlow13 dump-flows s1 | grep in_port"
-        output = subprocess.check_output(cmd, shell=True).decode('utf-8').strip()
+        switches = ['s1', 's2', 's3']
+        commands = []
 
-        # Extract dl_src and dl_dst using regex
-        dl_src_match = re.search(r'dl_src=([0-9a-fA-F:]+)', output)
-        dl_dst_match = re.search(r'dl_dst=([0-9a-fA-F:]+)', output)
+        def extract_flow_info(output):
+            dl_src = re.search(r'dl_src=([0-9a-fA-F:]+)', output)
+            dl_dst = re.search(r'dl_dst=([0-9a-fA-F:]+)', output)
+            in_port = re.search(r'in_port=(\d+)', output)
+            if dl_src and dl_dst and in_port:
+                return dl_src.group(1), dl_dst.group(1), in_port.group(1)
+            return None, None, None
 
-        if dl_src_match and dl_dst_match:
-            dl_src = dl_src_match.group(1)
-            dl_dst = dl_dst_match.group(1)
+        for sw in switches:
+            for line_num in [1, 2]: 
+                cmd = f"""ovs-ofctl -O OpenFlow13 dump-flows {sw} | awk '{{match($0, /n_bytes=([0-9]+)/, b); match($0, /duration=([0-9.]+)/, d); if (b[1] != "" && d[1] != "" && b[1]/d[1] > 10) print $0}}' | grep in_port | sed -n '{line_num}p'"""
+                try:
+                    output = subprocess.check_output(cmd, shell=True).decode('utf-8').strip()
+                    if output:
+                        dl_src, dl_dst, in_port = extract_flow_info(output)
+                        if dl_src and dl_dst and in_port:
+                            cmd_drop = f'ovs-ofctl -O OpenFlow13 add-flow {sw} "table=0, priority=100, in_port={in_port}, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"'
+                            commands.append(cmd_drop)
+                except subprocess.CalledProcessError:
+                    continue  
 
-            commands = [
-                f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=1, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
-                f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=4, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
-                f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=3, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
-                f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=5, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
-            ]
-
-            processes = [subprocess.Popen(cmd, shell=True) for cmd in commands]
-           
+        if commands:
+            for cmd in commands:
+                subprocess.Popen(cmd, shell=True)
             print("Mitigated DDOS Traffic Successfully!")
         else:
-            print("Failed to extract dl_src or dl_dst.")
+            print("Failed to extract necessary information (in_ports or MACs).")
 
     except subprocess.CalledProcessError as e:
         print("Error while executing ovs-ofctl command:", e)
+
 else:
     print("Normal Traffic")
 

@@ -58,12 +58,13 @@ label = 1 if z >= 0 else 0
 
 import subprocess
 import re
-
+#soure la de (h1)
+#dst la e2 (h6)
 if label == 1:
     print("Detected DDOS Traffic", end=" - ")
     try:
         # Run command to get flow entries with in_port=1 on switch s1
-        cmd = "sudo ovs-ofctl -O OpenFlow13 dump-flows s1 | grep in_port"
+        cmd = "sudo ovs-ofctl -O OpenFlow13 dump-flows s1 | grep in_port=1"
         output = subprocess.check_output(cmd, shell=True).decode('utf-8').strip()
 
         # Extract dl_src and dl_dst using regex
@@ -76,9 +77,11 @@ if label == 1:
 
             commands = [
                 f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=1, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
-                f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=4, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
-                f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=3, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
-                f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=5, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=5, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s8 "table=0, priority=10, in_port=6, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s8 "table=0, priority=10, in_port=5, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s7 "table=0, priority=10, in_port=5, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s7 "table=0, priority=10, in_port=2, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
             ]
 
             processes = [subprocess.Popen(cmd, shell=True) for cmd in commands]

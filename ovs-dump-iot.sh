@@ -6,7 +6,7 @@ output_file="data/dataset.csv"
 feature_file="data/features-file.csv"
 mac_src_file="data/mac-src.csv"
 duration_file="data/duration.csv"
-switches=("s1" "s2" "s3")
+switches=("s1" "s2" "s3" "s4" "s5")
 
 > "$output_file"
 > "$packets_file"
@@ -62,7 +62,7 @@ while true; do
         done < <(ovs-ofctl dump-flows "$switch" -O OpenFlow13)
     done
     
-    python3 computeFeature_main.py
+    python3 computeFeatures_iot.py
 
-    sleep 0.002
+    sleep 0.005
 done

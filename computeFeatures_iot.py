@@ -63,22 +63,27 @@ if label == 1:
     print("Detected DDOS Traffic", end=" - ")
     try:
         # Run command to get flow entries with in_port=1 on switch s1
-        cmd = "sudo ovs-ofctl -O OpenFlow13 dump-flows s1 | grep in_port"
+        # cmd = "sudo ovs-ofctl -O OpenFlow13 dump-flows s1 | grep in_port=1"
+        cmd = "ovs-ofctl -O OpenFlow13 dump-flows s1 | grep cookie=0x780000f3c336b6"
         output = subprocess.check_output(cmd, shell=True).decode('utf-8').strip()
 
         # Extract dl_src and dl_dst using regex
         dl_src_match = re.search(r'dl_src=([0-9a-fA-F:]+)', output)
         dl_dst_match = re.search(r'dl_dst=([0-9a-fA-F:]+)', output)
 
+
         if dl_src_match and dl_dst_match:
             dl_src = dl_src_match.group(1)
             dl_dst = dl_dst_match.group(1)
 
+            # print(dl_src)
+            # print(dl_dst)
+
             commands = [
-                f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=1, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
-                f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=10, in_port=4, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
-                f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=3, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
-                f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=10, in_port=5, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=200, in_port=1, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=200, in_port=6, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=200, in_port=6, dl_src={dl_src}, dl_dst={dl_dst}, actions=drop"',
+                f'ovs-ofctl -O OpenFlow13 add-flow s2 "table=0, priority=200, in_port=4, dl_src={dl_dst}, dl_dst={dl_src}, actions=drop"',
             ]
 
             processes = [subprocess.Popen(cmd, shell=True) for cmd in commands]

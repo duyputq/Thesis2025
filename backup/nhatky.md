@@ -8,9 +8,19 @@ sudo nping --tcp --rate 1000 --source-ip random 10.0.0.6
 
 hping3 -S -V -d 120 -w 64 -p 80 --rand-source --flood 10.0.0.6
 
-sudo ovs-ofctl -O OpenFlow13 dump-flows br0
-
 sudo ovs-ofctl -O OpenFlow13 dump-flows s1
+
+sudo ovs-ofctl -O OpenFlow13 del-flows s1
+sudo ovs-ofctl -O OpenFlow13 del-flows s2
+
+
+s2,462.384,2894431,503627574,5e:49:c0:ed:f4:9b,d2:7d:b5:6d:68:0e,,,,,output:4,125966,21918084
+
+ cookie=0x780000fdcd646b, duration=216.877s, table=0, n_packets=8, n_bytes=784, send_flow_rem priority=100,in_port=6,dl_src=d2:7d:b5:6d:68:0e,dl_dst=5e:49:c0:ed:f4:9b actions=output:1
+ cookie=0x780000f3c336b6, duration=216.877s, table=0, n_packets=8, n_bytes=784, send_flow_rem priority=100,in_port=1,dl_src=5e:49:c0:ed:f4:9b,dl_dst=d2:7d:b5:6d:68:0e actions=output:6
+ cookie=0x780000bbf0a466, duration=892.504s, table=0, n_packets=44, n_bytes=4312, send_flow_rem priority=100,in_port=6,dl_src=5e:49:c0:ed:f4:9b,dl_dst=d2:7d:b5:6d:68:0e actions=output:4
+ cookie=0x7800009340583b, duration=892.504s, table=0, n_packets=44, n_bytes=4312, send_flow_rem priority=100,in_port=4,dl_src=d2:7d:b5:6d:68:0e,dl_dst=5e:49:c0:ed:f4:9b actions=output:6
+
 
 docker compose stop
 
