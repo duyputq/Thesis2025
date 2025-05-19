@@ -62,7 +62,8 @@ while true; do
         done < <(ovs-ofctl dump-flows "$switch" -O OpenFlow13)
     done
     
-    python3 computeFeatures_scale.py
+    # python3 computeFeatures_scale.py
+    python3 test-scale.py
 
-    sleep 0.003
+    sleep 0.0001
 done

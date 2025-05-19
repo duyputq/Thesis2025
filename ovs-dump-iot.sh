@@ -62,7 +62,9 @@ while true; do
         done < <(ovs-ofctl dump-flows "$switch" -O OpenFlow13)
     done
     
-    python3 computeFeatures_iot.py
+    # python3 computeFeatures_iot.py
+    python3 test-iot.py
+    
 
     sleep 0.005
 done

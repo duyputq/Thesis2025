@@ -60,10 +60,10 @@ import subprocess
 import re
 
 if label == 1:
-    print("Detected DDOS Traffic", end=" ")
+    print("Detected DDOS Traffic", end=" - ")
     
     try:
-        switches = ['s1', 's2', 's3']
+        switches = [f's{i}' for i in range(1, 6)]
         commands = []
 
         def extract_flow_info(output):
@@ -90,7 +90,7 @@ if label == 1:
         if commands:
             for cmd in commands:
                 subprocess.Popen(cmd, shell=True)
-            print("- Mitigated DDOS Traffic Successfully!")
+            print("Mitigated DDOS Traffic Successfully!")
         else:
             packets_file = "data/packets.csv"
             bytes_file = "data/bytes.csv"
